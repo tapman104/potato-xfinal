@@ -1,0 +1,39 @@
+# Gradle
+.gradle/
+/build/
+*/build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
+
+# Log Files
+*.log
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json
+
+# MPV artifacts (if any local overrides)
+# libs/mpv-android-lib-v0.0.3.aar # Uncomment if you don't want to track the AAR in git
+
+# Temporary files
+temp_aar/
+temp_classes/
+temp_aar.zip
+temp_classes.zip
+window_dump.xml
