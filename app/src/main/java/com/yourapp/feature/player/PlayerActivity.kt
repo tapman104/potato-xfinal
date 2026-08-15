@@ -2,16 +2,15 @@ package com.yourapp.feature.player
 
 import android.os.Bundle
 import android.util.Log
-import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.viewinterop.AndroidView
 import com.yourapp.R
 import com.yourapp.engine.mpv.PlayerSurface
 import `is`.xyz.mpv.MPVLib
-import kotlinx.coroutines.launch
 
 class PlayerActivity : ComponentActivity() {
 
@@ -22,15 +21,16 @@ class PlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         val view = layoutInflater.inflate(R.layout.mpv_surface, null)
         playerSurface = view as PlayerSurface
-        setContentView(playerSurface)
+
+        val uri = intent.data
+        val fileName = uri?.lastPathSegment ?: "Unknown Video"
 
         if (!isLoaded) {
             isLoaded = true
-            intent.data?.let { uri ->
-                val path = getUsablePath(uri)
+            uri?.let {
+                val path = getUsablePath(it)
                 if (path != null) {
                     playerSurface.playFile(path)
                 }
@@ -39,12 +39,21 @@ class PlayerActivity : ComponentActivity() {
 
         playerSurface.initialize(applicationContext.filesDir.path, applicationContext.cacheDir.path)
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    Log.d("PlayerActivity", "uiState: $state")
+        setContent {
+            val uiState by viewModel.uiState.collectAsState()
+            
+            PlayerScreen(
+                uiState = uiState,
+                fileName = fileName,
+                onBack = { finish() },
+                onPlayPause = { viewModel.togglePlayPause() },
+                onSeek = { viewModel.seekTo(it) },
+                videoSurface = {
+                    AndroidView(
+                        factory = { playerSurface }
+                    )
                 }
-            }
+            )
         }
     }
 
