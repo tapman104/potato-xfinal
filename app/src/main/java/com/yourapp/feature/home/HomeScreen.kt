@@ -1,4 +1,4 @@
-package com.yourapp.ui
+package com.yourapp.feature.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

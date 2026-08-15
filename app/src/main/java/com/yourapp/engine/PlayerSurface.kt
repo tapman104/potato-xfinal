@@ -4,13 +4,12 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.util.AttributeSet
-import `is`.xyz.mpv.BaseMPVView
 import `is`.xyz.mpv.MPVLib
 
-class MpvSurfaceManager(
+class PlayerSurface(
     context: Context,
     attrs: AttributeSet
-) : BaseMPVView(context, attrs) {
+) : MpvEngine(context, attrs) {
 
 
     override fun initOptions() {
@@ -45,19 +44,5 @@ class MpvSurfaceManager(
         MPVLib.observeProperty("track-list", MPVLib.MpvFormat.MPV_FORMAT_STRING)
         MPVLib.observeProperty("sid", MPVLib.MpvFormat.MPV_FORMAT_STRING)
         MPVLib.observeProperty("aid", MPVLib.MpvFormat.MPV_FORMAT_STRING)
-    }
-
-    inner class TrackDelegate {
-        var sid: Int
-            get() = MPVLib.getPropertyString("sid")?.toIntOrNull() ?: -1
-            set(value) { MPVLib.setPropertyInt("sid", value) }
-            
-        var aid: Int
-            get() = MPVLib.getPropertyString("aid")?.toIntOrNull() ?: -1
-            set(value) { MPVLib.setPropertyInt("aid", value) }
-            
-        var secondarySid: Int
-            get() = MPVLib.getPropertyString("secondary-sid")?.toIntOrNull() ?: -1
-            set(value) { MPVLib.setPropertyInt("secondary-sid", value) }
     }
 }
