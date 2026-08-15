@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import com.yourapp.R
-import com.yourapp.engine.PlayerSurface
+import com.yourapp.engine.mpv.PlayerSurface
 import `is`.xyz.mpv.MPVLib
 
 class PlayerActivity : ComponentActivity() {

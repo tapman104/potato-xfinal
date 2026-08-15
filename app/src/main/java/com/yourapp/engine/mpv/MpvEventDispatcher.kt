@@ -1,4 +1,4 @@
-package com.yourapp.engine
+package com.yourapp.engine.mpv
 
 import `is`.xyz.mpv.MPVLib
 import kotlinx.coroutines.CoroutineScope
