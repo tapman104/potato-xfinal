@@ -4,82 +4,77 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.yourapp.domain.PlaybackState
+import com.yourapp.domain.PlayerEngine
+import com.yourapp.domain.PlayerEvent
 import com.yourapp.domain.PlayerUiState
-import com.yourapp.engine.mpv.MpvEvent
-import com.yourapp.engine.mpv.MpvEventDispatcher
-import `is`.xyz.mpv.MPVLib
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class PlayerViewModel(application: Application) : AndroidViewModel(application) {
+class PlayerViewModel(
+    application: Application,
+    private val playerEngine: PlayerEngine
+) : AndroidViewModel(application) {
 
-    private val mpvEventDispatcher = MpvEventDispatcher(viewModelScope)
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     init {
-        mpvEventDispatcher.register()
         viewModelScope.launch {
-            mpvEventDispatcher.events.collect { event ->
-                handleMpvEvent(event)
+            playerEngine.events.collect { event ->
+                handlePlayerEvent(event)
             }
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        mpvEventDispatcher.unregister()
-    }
-
-    private fun handleMpvEvent(event: MpvEvent) {
+    private fun handlePlayerEvent(event: PlayerEvent) {
         when (event) {
-            is MpvEvent.Pause -> {
+            is PlayerEvent.PlaybackStateChanged -> {
+                _uiState.update { it.copy(playbackState = event.state) }
+            }
+            is PlayerEvent.PositionChanged -> {
+                _uiState.update { it.copy(positionMs = event.positionMs) }
+            }
+            is PlayerEvent.DurationChanged -> {
+                _uiState.update { it.copy(durationMs = event.durationMs) }
+            }
+            is PlayerEvent.TracksChanged -> {
                 _uiState.update { 
-                    it.copy(playbackState = if (event.paused) PlaybackState.Paused else PlaybackState.Playing) 
+                    it.copy(audioTracks = event.audioTracks, subtitleTracks = event.subtitleTracks) 
                 }
             }
-            is MpvEvent.TimePos -> {
-                _uiState.update { it.copy(positionMs = (event.seconds * 1000).toLong()) }
-            }
-            is MpvEvent.Duration -> {
-                _uiState.update { it.copy(durationMs = (event.seconds * 1000).toLong()) }
-            }
-            is MpvEvent.EofReached -> {
-                _uiState.update { it.copy(playbackState = PlaybackState.Ended) }
-            }
-            is MpvEvent.BufferingChanged -> { }
-            is MpvEvent.TrackListChanged -> { }
-            is MpvEvent.VideoWidth -> {
-                _uiState.update { it.copy(videoWidth = event.width) }
-            }
-            is MpvEvent.VideoHeight -> {
-                _uiState.update { it.copy(videoHeight = event.height) }
+            is PlayerEvent.VideoSizeChanged -> {
+                _uiState.update { 
+                    it.copy(videoWidth = event.width, videoHeight = event.height) 
+                }
             }
         }
     }
 
     fun togglePlayPause() {
-        MPVLib.command("cycle", "pause")
+        if (_uiState.value.playbackState == PlaybackState.Playing) {
+            playerEngine.pause()
+        } else {
+            playerEngine.play()
+        }
     }
 
     fun seekTo(positionMs: Long) {
-        val seconds = positionMs / 1000.0
-        MPVLib.command("seek", seconds.toString(), "absolute")
+        playerEngine.seekTo(positionMs)
     }
 
     fun setAudioTrack(id: Int) {
-        MPVLib.setPropertyInt("aid", id)
+        playerEngine.setAudioTrack(id)
     }
 
     fun setSubtitleTrack(id: Int) {
-        MPVLib.setPropertyInt("sid", id)
+        playerEngine.setSubtitleTrack(id)
     }
 
     fun setSpeed(speed: Float) {
-        MPVLib.setPropertyDouble("speed", speed.toDouble())
+        playerEngine.setSpeed(speed)
         _uiState.update { it.copy(playbackSpeed = speed) }
     }
 }

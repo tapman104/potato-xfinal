@@ -1,28 +1,42 @@
 package com.yourapp.feature.player
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.yourapp.R
-import com.yourapp.engine.mpv.PlayerSurface
+import com.yourapp.domain.PlayerEngine
 
 class PlayerActivity : ComponentActivity() {
 
-    private lateinit var playerSurface: PlayerSurface
+    private lateinit var playerEngine: PlayerEngine
+    private lateinit var playerView: android.view.View
     private var isLoaded = false
     private var orientationSet = false
-    private val viewModel: PlayerViewModel by viewModels()
+
+    private val viewModel: PlayerViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(PlayerViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return PlayerViewModel(application, playerEngine) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val view = layoutInflater.inflate(R.layout.mpv_surface, null)
-        playerSurface = view as PlayerSurface
+        playerView = view
+        playerEngine = view as PlayerEngine
 
         val uri = intent.data
         val fileName = uri?.lastPathSegment ?: "Unknown Video"
@@ -32,12 +46,13 @@ class PlayerActivity : ComponentActivity() {
             uri?.let {
                 val path = getUsablePath(it)
                 if (path != null) {
-                    playerSurface.playFile(path)
+                    playerView.javaClass.getMethod("playFile", String::class.java).invoke(playerView, path)
                 }
             }
         }
 
-        playerSurface.initialize(applicationContext.filesDir.path, applicationContext.cacheDir.path)
+        playerView.javaClass.getMethod("initialize", String::class.java, String::class.java)
+            .invoke(playerView, applicationContext.filesDir.path, applicationContext.cacheDir.path)
 
         setContent {
             val uiState by viewModel.uiState.collectAsState()
@@ -58,7 +73,7 @@ class PlayerActivity : ComponentActivity() {
                 onSeek = { viewModel.seekTo(it) },
                 videoSurface = {
                     AndroidView(
-                        factory = { playerSurface }
+                        factory = { playerView }
                     )
                 }
             )
@@ -81,6 +96,8 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        playerSurface.destroy()
+        try {
+            playerView.javaClass.getMethod("destroy").invoke(playerView)
+        } catch (e: Exception) {}
     }
 }
