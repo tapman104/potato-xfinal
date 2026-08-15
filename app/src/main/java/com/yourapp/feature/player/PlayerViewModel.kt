@@ -52,6 +52,12 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             }
             is MpvEvent.BufferingChanged -> { }
             is MpvEvent.TrackListChanged -> { }
+            is MpvEvent.VideoWidth -> {
+                _uiState.update { it.copy(videoWidth = event.width) }
+            }
+            is MpvEvent.VideoHeight -> {
+                _uiState.update { it.copy(videoHeight = event.height) }
+            }
         }
     }
 

@@ -6,5 +6,7 @@ data class PlayerUiState(
     val durationMs: Long = 0L,
     val audioTracks: List<TrackUiModel> = emptyList(),
     val subtitleTracks: List<TrackUiModel> = emptyList(),
-    val playbackSpeed: Float = 1.0f
+    val playbackSpeed: Float = 1.0f,
+    val videoWidth: Int = 0,
+    val videoHeight: Int = 0
 )

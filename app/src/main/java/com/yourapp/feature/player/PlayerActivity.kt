@@ -10,12 +10,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yourapp.R
 import com.yourapp.engine.mpv.PlayerSurface
-import `is`.xyz.mpv.MPVLib
 
 class PlayerActivity : ComponentActivity() {
 
     private lateinit var playerSurface: PlayerSurface
     private var isLoaded = false
+    private var orientationSet = false
     private val viewModel: PlayerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +42,14 @@ class PlayerActivity : ComponentActivity() {
         setContent {
             val uiState by viewModel.uiState.collectAsState()
             
+            if (!orientationSet && uiState.videoWidth > 0 && uiState.videoHeight > 0) {
+                orientationSet = true
+                requestedOrientation = if (uiState.videoWidth > uiState.videoHeight)
+                    android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                else
+                    android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            }
+
             PlayerScreen(
                 uiState = uiState,
                 fileName = fileName,

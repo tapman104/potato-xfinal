@@ -14,6 +14,8 @@ sealed class MpvEvent {
     object EofReached : MpvEvent()
     data class BufferingChanged(val isBuffering: Boolean) : MpvEvent()
     object TrackListChanged : MpvEvent()
+    data class VideoWidth(val width: Int) : MpvEvent()
+    data class VideoHeight(val height: Int) : MpvEvent()
 }
 
 class MpvEventDispatcher(private val coroutineScope: CoroutineScope) : MPVLib.EventObserver {
@@ -55,6 +57,8 @@ class MpvEventDispatcher(private val coroutineScope: CoroutineScope) : MPVLib.Ev
             when (property) {
                 "time-pos" -> _events.emit(MpvEvent.TimePos(value.toDouble()))
                 "duration" -> _events.emit(MpvEvent.Duration(value.toDouble()))
+                "video-params/w" -> _events.emit(MpvEvent.VideoWidth(value.toInt()))
+                "video-params/h" -> _events.emit(MpvEvent.VideoHeight(value.toInt()))
             }
         }
     }

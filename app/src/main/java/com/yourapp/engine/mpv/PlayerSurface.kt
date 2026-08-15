@@ -44,5 +44,7 @@ class PlayerSurface(
         MPVLib.observeProperty("track-list", MPVLib.MpvFormat.MPV_FORMAT_STRING)
         MPVLib.observeProperty("sid", MPVLib.MpvFormat.MPV_FORMAT_STRING)
         MPVLib.observeProperty("aid", MPVLib.MpvFormat.MPV_FORMAT_STRING)
+        MPVLib.observeProperty("video-params/w", MPVLib.MpvFormat.MPV_FORMAT_INT64)
+        MPVLib.observeProperty("video-params/h", MPVLib.MpvFormat.MPV_FORMAT_INT64)
     }
 }
