@@ -29,6 +29,13 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.PlayerActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"
+            android:screenOrientation="sensorLandscape" />
     </application>
 
 </manifest>
